@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('path');
+const pLimit = require('p-limit').default;
 const { getService, loadConfig } = require('../config');
 const { tileCachePath } = require('../cache/cacheKey');
 const { readTile, writeTile } = require('../cache/fileCache');
@@ -8,6 +9,12 @@ const { buildTileUrl } = require('../upstream/urlBuilder');
 const { fetchTile } = require('../upstream/fetcher');
 const { recordHit, recordMiss, recordError } = require('../stats');
 const { getLogger } = require('../logger');
+
+// upstream 동시 요청 최대 10개로 제한 (OSM rate limit 방지)
+const upstreamLimit = pLimit(10);
+
+// 진행 중인 upstream fetch를 캐시 경로 기준으로 추적 (thundering herd 방지)
+const _inflight = new Map();
 
 /**
  * Parse tile parameters from a request.
@@ -100,13 +107,21 @@ async function getTileHandler(req, res) {
     }
 
     // -----------------------------------------------------------------------
-    // Cache MISS — fetch from upstream
+    // Cache MISS — fetch from upstream (deduplication + concurrency limit)
     // -----------------------------------------------------------------------
     recordMiss(serviceName);
     const upstreamUrl = buildTileUrl(serviceCfg, params);
     log.debug({ serviceName, upstreamUrl }, 'cache MISS — fetching upstream');
 
-    const { buffer, contentType } = await fetchTile(upstreamUrl, serviceCfg.headers ?? {});
+    // 동일 타일에 대한 중복 upstream 요청을 하나로 합침 (thundering herd 방지)
+    let inflightPromise = _inflight.get(filePath);
+    if (!inflightPromise) {
+      inflightPromise = upstreamLimit(() => fetchTile(upstreamUrl, serviceCfg.headers ?? {}))
+        .finally(() => _inflight.delete(filePath));
+      _inflight.set(filePath, inflightPromise);
+    }
+
+    const { buffer, contentType } = await inflightPromise;
 
     // Write to cache (non-blocking — don't await, don't let it delay response)
     writeTile(filePath, buffer);
