@@ -1,0 +1,75 @@
+server:
+  port: 3000
+  logLevel: info
+  corsOrigins: "*"
+
+cache:
+  directory: ./cache
+  maxAgeDays: 30
+  capabilitiesTtlSeconds: 300
+
+services:
+  # -------------------------------------------------------
+  # 예시 1: VWORLD 배경지도 (KVP 방식)
+  # 실제 사용 시 apiKey를 발급받아 .env 파일에 VWORLD_API_KEY=xxx 설정
+  # -------------------------------------------------------
+  - name: vworld-base
+    label: "VWorld 배경지도"
+    upstream:
+      url: "https://api.vworld.kr/req/wmts/1.0.0"
+      style: rest
+      restTemplate: "/{apiKey}/{layer}/{tilematrixset}/{z}/{y}/{x}.{ext}"
+      extraParams:
+        apiKey: "${VWORLD_API_KEY}"
+    layers:
+      allowlist: []
+    cache:
+      maxAgeDays: 7
+
+  # -------------------------------------------------------
+  # 예시 2: OpenStreetMap 슬리피맵 (TMS 방식 - WMTS로 래핑)
+  # -------------------------------------------------------
+  - name: osm
+    label: "OpenStreetMap"
+    upstream:
+      url: "https://tile.openstreetmap.org"
+      style: tms
+      restTemplate: "/{z}/{x}/{y}.png"
+    layers:
+      allowlist: []
+    cache:
+      maxAgeDays: 1
+    headers:
+      User-Agent: "wmts-tile-cache/1.0 (yjlee@sphinfo.co.kr)"
+
+  # -------------------------------------------------------
+  # 예시 3: 일반 WMTS REST 서비스
+  # -------------------------------------------------------
+  # - name: my-service
+  #   label: "My WMTS Service"
+  #   upstream:
+  #     url: "https://example.com/wmts"
+  #     style: rest
+  #     restTemplate: "/{layer}/{style}/{tilematrixset}/{z}/{y}/{x}.{ext}"
+  #   layers:
+  #     allowlist:
+  #       - "layer1"
+  #       - "layer2"
+  #   cache:
+  #     maxAgeDays: 30
+
+  # -------------------------------------------------------
+  # 예시 4: WMTS KVP 방식
+  # -------------------------------------------------------
+  # - name: my-kvp-service
+  #   label: "My KVP WMTS Service"
+  #   upstream:
+  #     url: "https://example.com/wmts"
+  #     style: kvp
+  #     kvpDefaults:
+  #       VERSION: "1.0.0"
+  #       FORMAT: "image/png"
+  #   layers:
+  #     allowlist: []
+  #   cache:
+  #     maxAgeDays: 14

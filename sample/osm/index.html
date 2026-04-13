@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OSM WMTS Tile Cache Sample</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: sans-serif; }
+    #map { width: 100vw; height: 100vh; }
+
+    #info {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 12px;
+      line-height: 1.8;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      min-width: 220px;
+    }
+    #info b { font-size: 13px; }
+    #cache-status { color: #888; }
+    #cache-status.hit  { color: #2a9d2a; font-weight: bold; }
+    #cache-status.miss { color: #c07000; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div id="info">
+  <b>OSM WMTS Tile Cache</b><br>
+  서버: <code id="server-url">http://localhost:3000</code><br>
+  서비스: <code>osm</code><br>
+  마지막 타일: <span id="cache-status">—</span>
+  <br><br>
+  <a href="http://localhost:3000/wmts/_stats" target="_blank">Stats 보기</a> ·
+  <a href="http://localhost:3000/wmts/_health" target="_blank">Health</a>
+</div>
+
+<script>
+  // ── 설정 ──────────────────────────────────────────────
+  const SERVER = 'http://localhost:3000';
+  const SERVICE = 'osm';
+  // TMS 스타일: /wmts/{service}/{z}/{y}/{x}.png
+  const TILE_URL = `${SERVER}/wmts/${SERVICE}/{z}/{y}/{x}.png`;
+  // ──────────────────────────────────────────────────────
+
+  document.getElementById('server-url').textContent = SERVER;
+
+  const map = L.map('map').setView([37.5665, 126.9780], 12); // 서울
+
+  const tileLayer = L.tileLayer(TILE_URL, {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  });
+
+  tileLayer.on('tileload', (e) => {
+    // Leaflet은 응답 헤더를 직접 노출하지 않으므로
+    // X-Cache 확인은 fetch로 별도 요청
+    const { z, x, y } = e.coords;
+    const url = `${SERVER}/wmts/${SERVICE}/${z}/${y}/${x}.png`;
+    fetch(url, { method: 'HEAD' })
+      .then(r => {
+        const xCache = r.headers.get('X-Cache') ?? '?';
+        const el = document.getElementById('cache-status');
+        el.textContent = `${xCache}  (z=${z} x=${x} y=${y})`;
+        el.className = xCache === 'HIT' ? 'hit' : 'miss';
+      })
+      .catch(() => {});
+  });
+
+  tileLayer.addTo(map);
+</script>
+
+</body>
+</html>
