@@ -13,16 +13,24 @@ services:
   # 예시 1: VWORLD 배경지도 (KVP 방식)
   # 실제 사용 시 apiKey를 발급받아 .env 파일에 VWORLD_API_KEY=xxx 설정
   # -------------------------------------------------------
-  - name: vworld-base
+  - name: world-base
     label: "VWorld 배경지도"
+    tileDefaults:
+      style: "default"
+      tilematrixset: "GoogleMapsCompatible"
+      ext: "png"
     upstream:
       url: "https://api.vworld.kr/req/wmts/1.0.0"
       style: rest
-      restTemplate: "/{apiKey}/{layer}/{tilematrixset}/{z}/{y}/{x}.{ext}"
+      restTemplate: "/{apiKey}/{layer}/{z}/{y}/{x}.{ext}"
       extraParams:
         apiKey: "${VWORLD_API_KEY}"
     layers:
-      allowlist: []
+      allowlist:
+        - "Base"
+        - "Satellite"
+        - "white"
+        - "midnight"
     cache:
       maxAgeDays: 7
 

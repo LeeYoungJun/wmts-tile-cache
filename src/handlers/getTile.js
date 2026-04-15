@@ -108,6 +108,12 @@ async function getTileHandler(req, res) {
     return res.status(404).json({ error: `Unknown service: ${serviceName}` });
   }
 
+  const defaults = serviceCfg.tileDefaults ?? {};
+  params.layer = params.layer ?? defaults.layer;
+  params.style = params.style ?? defaults.style ?? "default";
+  params.tilematrixset = params.tilematrixset ?? defaults.tilematrixset;
+  params.ext = params.ext ?? defaults.ext ?? "png";
+
   // Layer allowlist check
   const allowlist = serviceCfg.layers?.allowlist;
   if (allowlist?.length && params.layer && !allowlist.includes(params.layer)) {

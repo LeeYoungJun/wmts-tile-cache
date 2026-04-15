@@ -15,6 +15,7 @@ npm run dev         # nodemon src/server.js
 There is no test suite. There are no lint scripts defined.
 
 **Environment variables** are loaded via `dotenv` from a `.env` file in the project root. Example:
+
 ```
 VWORLD_API_KEY=your_key_here
 PORT=3000
@@ -43,21 +44,22 @@ Client → Express → router.js → handler → cache check → upstream fetch 
 
 ### URL patterns
 
-| Pattern | Purpose |
-|---|---|
-| `GET /wmts/_stats` | JSON stats (hit ratio, cached tile count per service) |
-| `GET /wmts/_health` | Health check |
-| `GET /wmts/:service/WMTSCapabilities.xml` | GetCapabilities (REST) |
-| `GET /wmts/:service?REQUEST=GetCapabilities` | GetCapabilities (KVP) |
-| `GET /wmts/:service/:layer/:style/:tms/:z/:y/:x.:ext` | GetTile (full WMTS REST) |
-| `GET /wmts/:service/:z/:y/:x.:ext` | GetTile (TMS shorthand) |
-| `GET /wmts/:service?REQUEST=GetTile&...` | GetTile (KVP) |
+| Pattern                                               | Purpose                                               |
+| ----------------------------------------------------- | ----------------------------------------------------- |
+| `GET /wmts/_stats`                                    | JSON stats (hit ratio, cached tile count per service) |
+| `GET /wmts/_health`                                   | Health check                                          |
+| `GET /wmts/:service/WMTSCapabilities.xml`             | GetCapabilities (REST)                                |
+| `GET /wmts/:service?REQUEST=GetCapabilities`          | GetCapabilities (KVP)                                 |
+| `GET /wmts/:service/:layer/:style/:tms/:z/:y/:x.:ext` | GetTile (full WMTS REST)                              |
+| `GET /wmts/:service/:z/:y/:x.:ext`                    | GetTile (TMS shorthand)                               |
+| `GET /wmts/:service?REQUEST=GetTile&...`              | GetTile (KVP)                                         |
 
 ### Configuration (`config.yaml`)
 
 Validated at startup with Zod. Environment variable interpolation uses `${VAR_NAME}` syntax in YAML string values. Config is a singleton — cached after first load.
 
 Each **service** entry defines:
+
 - `upstream.style`: `rest` | `kvp` | `tms` — determines URL construction
 - `upstream.restTemplate`: path template with `{layer}`, `{z}`, `{y}`, `{x}`, `{ext}`, `{apiKey}`, etc.
 - `upstream.extraParams`: arbitrary template variables injected into `restTemplate`
