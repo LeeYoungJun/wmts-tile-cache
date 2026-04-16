@@ -51,10 +51,10 @@ services:
       User-Agent: "wmts-tile-cache/1.0 (yjlee@sphinfo.co.kr)"
 
   # -------------------------------------------------------
-  # 샘플: 외부 GeoServer WMTS (KVP)
+  # 샘플: 레이어 WMTS (KVP) **url 추후 실제 제공하는 서버로 변경해야함 임시 geoserver 샘플 URL로 설정
   # -------------------------------------------------------
-  - name: geoserver-sample
-    label: "GeoServer Sample"
+  - name: layer-tile-cache
+    label: "layer-tile-cache"
     upstream:
       url: "http://34.64.169.193:8080/geoserver/gwc/service/wmts"
       style: kvp
