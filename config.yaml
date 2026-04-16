@@ -22,7 +22,7 @@ services:
     upstream:
       url: "https://api.vworld.kr/req/wmts/1.0.0"
       style: rest
-      restTemplate: "/{apiKey}/{layer}/{tilematrixset}/{z}/{y}/{x}.{ext}"
+      restTemplate: "/{apiKey}/{layer}/{z}/{y}/{x}.{ext}"
       extraParams:
         apiKey: "${VWORLD_API_KEY}"
     layers:
