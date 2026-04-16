@@ -15,6 +15,7 @@ services:
   # -------------------------------------------------------
   - name: world-base
     label: "VWorld 배경지도"
+    cacheOnly: true
     tileDefaults:
       style: "default"
       tilematrixset: "GoogleMapsCompatible"

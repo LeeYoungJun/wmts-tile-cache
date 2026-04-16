@@ -153,6 +153,23 @@ async function getTileHandler(req, res) {
       return res.send(cached.buffer);
     }
 
+    if (serviceCfg.cacheOnly) {
+      recordMiss(serviceName);
+      res.set({
+        "Cache-Control": "no-store",
+        "X-Cache": "MISS",
+        "X-Cache-Mode": "CACHE_ONLY",
+      });
+      log.info(
+        { serviceName, filePath, z: params.z, y: params.y, x: params.x },
+        "cache-only miss blocked upstream fetch",
+      );
+      return res.status(404).json({
+        error: "Tile not found in cache",
+        cacheOnly: true,
+      });
+    }
+
     // -----------------------------------------------------------------------
     // Cache MISS — fetch from upstream (deduplication + concurrency limit)
     // -----------------------------------------------------------------------

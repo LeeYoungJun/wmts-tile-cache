@@ -11,6 +11,7 @@ const { z } = require("zod");
 const ServiceSchema = z.object({
   name: z.string().min(1),
   label: z.string().optional(),
+  cacheOnly: z.boolean().optional(),
   tileDefaults: z
     .object({
       layer: z.string().optional(),
