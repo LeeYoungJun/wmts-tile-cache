@@ -22,12 +22,8 @@ async function readTile(filePath) {
 }
 
 async function writeTile(filePath, buffer) {
-  try {
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
-    await fs.writeFile(filePath, buffer);
-  } catch (_err) {
-    // Cache write failures are non-fatal by design.
-  }
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.writeFile(filePath, buffer);
 }
 
 async function countCachedTiles(rootDir) {

@@ -172,7 +172,9 @@ async function getTileHandler(req, res) {
     const { buffer, contentType } = await inflightPromise;
 
     // Write to cache (non-blocking — don't await, don't let it delay response)
-    writeTile(filePath, buffer);
+    writeTile(filePath, buffer).catch((cacheErr) => {
+      log.warn({ err: cacheErr, filePath, serviceName }, "cache write failed");
+    });
 
     const maxAge =
       (serviceCfg.cache?.maxAgeDays ?? cfg.cache.maxAgeDays ?? 30) * 86400;
